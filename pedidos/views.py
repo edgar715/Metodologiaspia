@@ -14,6 +14,10 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.forms import formset_factory
+<<<<<<< HEAD
+=======
+from django.forms import modelformset_factory
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 from django.conf import settings
 from .models import PEDIDO, PRODUCTOS, DETALLE_PEDIDO, USUARIO
 from .forms import LoginForm, RegistroForm, PedidoForm, ProductoForm, DetallePedidoForm
@@ -142,11 +146,85 @@ def v_crear_pedido(request):
 
     return render(request, 'areaMeseroCrearPedido.html', {'form': form, 'formset': formset, 'categorias': categorias})
 
+<<<<<<< HEAD
 # Vista para editar un pedido existente
 @login_required
 def v_editar_pedido(request, id_pedido):
     pass
  
+=======
+
+from django.db import transaction
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from django.forms import formset_factory
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def v_editar_pedido(request, id_pedido):
+    if request.user.usuario.rol != 1:  # Verificar si es mesero
+        return redirect('pedidos:login')
+
+    pedido = get_object_or_404(PEDIDO, pk=id_pedido)
+    DetalleFormSet = formset_factory(DetallePedidoForm, extra=0, can_delete=True)
+
+    if request.method == 'POST':
+        form = PedidoForm(request.POST, instance=pedido)
+        formset = DetalleFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            # Actualizar datos del pedido
+            pedido = form.save(commit=False)
+            pedido.usuario_registro = request.user.usuario.nombre
+            pedido.save()
+
+            # Eliminar detalles existentes y crear nuevos (forma simple y segura)
+            DETALLE_PEDIDO.objects.filter(pedido=pedido).delete()
+
+            for i, detalle_form in enumerate(formset):
+                if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
+                    producto_id = request.POST.get(f'form-{i}-producto')
+                    cantidad = detalle_form.cleaned_data['cantidad']
+
+                    try:
+                        producto = PRODUCTOS.objects.get(pk=producto_id)
+                    except PRODUCTOS.DoesNotExist:
+                        messages.error(request, f"Producto con ID {producto_id} no encontrado.")
+                        continue
+
+                    if producto and cantidad >= 1:
+                        DETALLE_PEDIDO.objects.create(
+                            pedido=pedido,
+                            nombre_producto=producto.nombre,
+                            cantidad=cantidad,
+                            precio_unitario=producto.precio
+                        )
+            messages.success(request, 'Pedido actualizado exitosamente.')
+            return redirect('pedidos:adminMesero')  # Cambiado para redirigir al panel del mesero
+        else:
+            messages.error(request, 'Hubo un error en el formulario.')
+    else:
+        form = PedidoForm(instance=pedido)
+
+        # Creamos data inicial para el formset con los detalles del pedido
+        detalles = DETALLE_PEDIDO.objects.filter(pedido=pedido)
+        formset_data = [{
+            'producto': detalle.nombre_producto,
+            'cantidad': detalle.cantidad
+        } for detalle in detalles]
+        DetalleFormSet = formset_factory(DetallePedidoForm, extra=0, can_delete=True)
+        formset = DetalleFormSet(initial=formset_data)
+
+    categorias = PRODUCTOS.CATEGORIA
+
+    return render(request, 'areaMeseroEditarPedido.html', {
+        'form': form,
+        'formset': formset,
+        'categorias': categorias
+    })
+
+
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 # Vista para eliminar un pedido
 @login_required
 def v_eliminar_pedido(request, id_pedido):
@@ -163,7 +241,11 @@ def v_eliminar_pedido(request, id_pedido):
         pedido.delete()
         messages.success(request, 'Pedido eliminado exitosamente.')
         return redirect('pedidos:adminMesero')
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
     messages.error(request, 'Operación no permitida.')
     return redirect('pedidos:adminMesero')
 
@@ -181,6 +263,7 @@ def v_marcar_entregado(request, id_pedido):
 # Vista de lista de pedidos
 @login_required
 def v_chef(request):
+<<<<<<< HEAD
     if request.user.usuario.rol != 2:  # Verificar si es un mesero
         return redirect('pedidos:login')
     
@@ -199,10 +282,14 @@ def v_chef(request):
     
     return render(request, 'areaCocina.html', {'pedidos': page_obj})
 
+=======
+    pass
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 
 # Vista para que el personal de cocina pueda aceptar los pedidos
 @login_required
 def v_aceptar_pedido(request, id_pedido):
+<<<<<<< HEAD
     if request.user.usuario.rol != 2:  # Verificar si es un mesero
         return redirect('pedidos:login')
     
@@ -213,10 +300,14 @@ def v_aceptar_pedido(request, id_pedido):
 
     messages.success(request, 'Pedido Aceptado exitosamente.')
     return redirect('pedidos:adminCocina')
+=======
+    pass
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 
 # Vista para cambiar el estado de un pedido a "Listo para entrega"
 @login_required
 def v_listo_para_entrega(request, id_pedido):
+<<<<<<< HEAD
     if request.user.usuario.rol != 2:  # Verificar si es un mesero
         return redirect('pedidos:login')
     
@@ -227,6 +318,10 @@ def v_listo_para_entrega(request, id_pedido):
     
     messages.success(request, 'Pedido Aceptado exitosamente.')
     return redirect('pedidos:adminCocina')
+=======
+    pass
+
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 
 
 

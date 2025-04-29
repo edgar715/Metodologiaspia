@@ -74,6 +74,10 @@ class DetallePedidoForm(forms.Form):
         required=True
     )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 # Formulario para Productos
 class ProductoForm(forms.ModelForm):
     class Meta:

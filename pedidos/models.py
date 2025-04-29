@@ -1,7 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
+<<<<<<< HEAD
 
 # Create your models here.
+=======
+# Create your models here.  
+>>>>>>> 041d2eb509dc683c6bfdbdb5c793c4a39e63e73e
 
 # Tabla de USUARIO
 class USUARIO(models.Model):
